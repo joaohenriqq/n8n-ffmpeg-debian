@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     jq \
     openssh-client \
     fontconfig \
-    freetype2 \
+    libfreetype6 \
     libass9 \
     libharfbuzz-dev \
     libfribidi-dev \
