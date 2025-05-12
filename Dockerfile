@@ -2,7 +2,11 @@ FROM node:20-bookworm-slim
 
 # Etapa 1: Instala dependências do sistema
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+    ffmpeg \
+    frei0r-plugins \
+    ladspa-sdk \
+    rubberband-cli \
+    tesseract-ocr \
     curl \
     wget \
     zip \
@@ -21,8 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     mediainfo \
     libimage-exiftool-perl \
     sox \
-    tesseract-ocr \
-    ghostscript \
+    build-essential \
     libpng-dev \
     libjpeg-dev \
     libtiff-dev \
@@ -35,6 +38,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libfftw3-dev \
     libopenexr-dev \
     librsvg2-dev \
+    ghostscript \
+    libltdl-dev \  # Adicionado para suportar módulos e OpenCL no ImageMagick
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Etapa 2: Instala o ImageMagick 7 a partir do código-fonte
