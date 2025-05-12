@@ -28,9 +28,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sox \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Etapa 2: Instala pacotes Python via pip
-RUN pip install --upgrade pip && \
-    pip install \
+# Etapa 2: Instala pacotes Python via pip com liberação de sistema gerenciado
+RUN pip install --upgrade pip --break-system-packages && \
+    pip install --break-system-packages \
+      ffmpeg \
       openai-whisper \
       git+https://github.com/m1guelpf/auto-subtitle.git \
       ffmpeg-normalize
