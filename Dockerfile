@@ -17,8 +17,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     jq \
     openssh-client \
     fontconfig \
-    libfreetype6 \
+    freetype2 \
     libass9 \
+    libharfbuzz-dev \
+    libfribidi-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Etapa 3: Define o usuário padrão
