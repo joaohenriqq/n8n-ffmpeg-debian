@@ -1,4 +1,4 @@
-FROM node:18-bullseye-slim
+FROM node:20-bookworm-slim
 
 # Etapa 1: Instala dependências do sistema
 RUN apt-get update && apt-get install -y --no-install-recommends \
