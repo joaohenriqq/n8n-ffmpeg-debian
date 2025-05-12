@@ -49,8 +49,8 @@ WORKDIR /data
 
 # Etapa 6: Define usuário e porta
 USER node
-EXPOSE 80
-ENV N8N_PORT=80
+EXPOSE 5678
+ENV N8N_PORT=5678
 
 # Etapa 7: Inicia o n8n
 CMD ["n8n"]
