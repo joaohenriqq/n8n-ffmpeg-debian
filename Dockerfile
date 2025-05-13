@@ -58,7 +58,8 @@ ENV PIPX_BIN_DIR=/usr/local/bin
 ENV PIPX_HOME=/opt/pipx
 RUN pipx install openai-whisper && \
     pipx install ffmpeg-normalize && \
-    pipx install 'git+https://github.com/m1guelpf/auto-subtitle.git'
+    pipx install 'git+https://github.com/m1guelpf/auto-subtitle.git' && \
+    pipx inject auto-subtitle ffmpeg-python
 
 # Etapa 4: Clona e instala PupCaps
 RUN git clone https://github.com/hosuaby/PupCaps.git /opt/pupcaps && \
