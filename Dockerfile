@@ -43,11 +43,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxt-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Etapa 2: Instala FFmpeg mais recente via build oficial (BtbN)
+# Etapa 2: Instala FFmpeg mais recente via build oficial do BtbN (master)
 RUN mkdir -p /opt/ffmpeg && \
-    wget -qO- https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-amd64-static.tar.xz | tar -xJ --strip-components=1 -C /opt/ffmpeg && \
-    ln -sf /opt/ffmpeg/ffmpeg /usr/local/bin/ffmpeg && \
-    ln -sf /opt/ffmpeg/ffprobe /usr/local/bin/ffprobe
+    wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 3 -qO- \
+      https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linux64-gpl-shared.tar.xz | \
+    tar -xJ --strip-components=1 -C /opt/ffmpeg && \
+    ln -sf /opt/ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg && \
+    ln -sf /opt/ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
 
 # Etapa 3: Compila e instala ImageMagick 7 com suporte a magick e módulos
 RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz && \
@@ -57,12 +59,12 @@ RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz && \
     make -j$(nproc) && make install && ldconfig && \
     cd .. && rm -rf ImageMagick*
 
-# Etapa 4: Instala ferramentas Python com pipx
+# Etapa 4: Instala ferramentas Python com pipx (modo seguro com system-site-packages)
 ENV PIPX_BIN_DIR=/usr/local/bin
 ENV PIPX_HOME=/opt/pipx
-RUN pipx install openai-whisper && \
-    pipx install ffmpeg-normalize && \
-    pipx install 'git+https://github.com/m1guelpf/auto-subtitle.git' && \
+RUN pipx install openai-whisper --system-site-packages && \
+    pipx install ffmpeg-normalize --system-site-packages && \
+    pipx install 'git+https://github.com/m1guelpf/auto-subtitle.git' --system-site-packages && \
     pipx inject auto-subtitle ffmpeg-python && \
     ln -sf /opt/pipx/venvs/auto-subtitle/bin/auto_subtitle /usr/local/bin/auto_subtitle
 
