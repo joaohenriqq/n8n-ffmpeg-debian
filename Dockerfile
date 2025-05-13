@@ -51,6 +51,9 @@ RUN mkdir -p /opt/ffmpeg && \
     ln -sf /opt/ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg && \
     ln -sf /opt/ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
 
+# Corrige carregamento das libs compartilhadas do FFmpeg
+ENV LD_LIBRARY_PATH=/opt/ffmpeg/lib:$LD_LIBRARY_PATH
+
 # Etapa 3: Compila e instala ImageMagick 7 com suporte a magick e módulos
 RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz && \
     tar xvzf ImageMagick.tar.gz && \
