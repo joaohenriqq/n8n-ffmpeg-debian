@@ -2,6 +2,7 @@ FROM node:20-bookworm-slim
 
 # Etapa 1: Instala dependências do sistema (exceto ffmpeg, que será instalado via build oficial)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    bc \
     frei0r-plugins \
     ladspa-sdk \
     rubberband-cli \
