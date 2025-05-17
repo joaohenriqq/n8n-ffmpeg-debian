@@ -44,6 +44,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxt-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Instala pysrt direto no Python do sistema (sempre disponível para qualquer comando Python3)
+RUN pip3 install pysrt
+
 # Etapa 2: Instala FFmpeg mais recente via build oficial do BtbN (master)
 RUN mkdir -p /opt/ffmpeg && \
     wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 3 -qO- \
