@@ -1,6 +1,6 @@
 FROM node:20-bookworm-slim
 
-# Etapa 1: Instala dependências do sistema (exceto ffmpeg, que será instalado via build oficial)
+# Etapa 1: Instala dependências do sistema (inclui python3-venv para evitar erros futuros)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bc \
     frei0r-plugins \
@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     python3 \
     python3-pip \
+    python3-venv \
     pipx \
     mediainfo \
     libimage-exiftool-perl \
@@ -44,8 +45,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxt-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Instala pysrt direto no Python do sistema (sempre disponível para qualquer comando Python3)
-RUN pip3 install pysrt
+# Atualiza o pip para evitar warnings
+RUN python3 -m pip install --upgrade pip --break-system-packages
+
+# Instala pysrt direto no Python do sistema, usando o parâmetro certo para Bookworm/Debian 12+
+RUN pip3 install pysrt --break-system-packages
 
 # Etapa 2: Instala FFmpeg mais recente via build oficial do BtbN (master)
 RUN mkdir -p /opt/ffmpeg && \
@@ -55,7 +59,6 @@ RUN mkdir -p /opt/ffmpeg && \
     ln -sf /opt/ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg && \
     ln -sf /opt/ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
 
-# Corrige carregamento das libs compartilhadas do FFmpeg
 ENV LD_LIBRARY_PATH=/opt/ffmpeg/lib:$LD_LIBRARY_PATH
 
 # Etapa 3: Compila e instala ImageMagick 7 com suporte a magick e módulos
