@@ -87,6 +87,9 @@ RUN git clone https://github.com/hosuaby/PupCaps.git /opt/pupcaps && \
 # Etapa 6: Instala o n8n globalmente
 RUN npm install -g n8n
 
+# Instala o JSON5 globalmente
+RUN npm install -g json5
+
 # Etapa 7: Define diretório de trabalho
 WORKDIR /data
 
