@@ -1,11 +1,15 @@
 FROM node:20-bookworm-slim
 
-# Etapa 1: Instala dependências do sistema (inclui Freeverb/LADSPA)
+# Etapa 1: Instala dependências do sistema (inclui LV2 e plugins de reverb de alta qualidade)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bc \
     frei0r-plugins \
     ladspa-sdk \
-    ladspa-plugin-freeverb \
+    lv2-dev \
+    dragonfly-reverb-lv2 \
+    artyfx-lv2 \
+    calf-plugins \
+    lv2file \
     rubberband-cli \
     tesseract-ocr \
     ghostscript \
