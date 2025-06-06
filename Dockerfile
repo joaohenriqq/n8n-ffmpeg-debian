@@ -1,6 +1,6 @@
 FROM node:20-bookworm-slim
 
-# Etapa 1: Instala dependências do sistema (inclui LV2 e plugins de reverb de alta qualidade)
+# Etapa 1: Instala dependências do sistema (inclui LV2, Dragonfly, Calf e lv2file)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bc \
     frei0r-plugins \
@@ -49,10 +49,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxt-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Adiciona plugins Dragonfly Reverb (incluindo Hall) manualmente
+RUN wget https://github.com/michaelwillis/dragonfly-reverb/releases/download/v3.2.10/DragonflyReverb-v3.2.10-linux-x86_64.tar.xz && \
+    tar -xf DragonflyReverb-v3.2.10-linux-x86_64.tar.xz && \
+    mkdir -p /usr/local/lib/lv2 && \
+    cp -r DragonflyReverb.lv2 DragonflyEarlyReflections.lv2 DragonflyPlateReverb.lv2 DragonflyRoomReverb.lv2 /usr/local/lib/lv2/ && \
+    rm -rf DragonflyReverb-v3.2.10-linux-x86_64.tar.xz DragonflyReverb.lv2 DragonflyEarlyReflections.lv2 DragonflyPlateReverb.lv2 DragonflyRoomReverb.lv2
+
 # Atualiza o pip para evitar warnings
 RUN python3 -m pip install --upgrade pip --break-system-packages
 
-# Instala pysrt direto no Python do sistema, usando o parâmetro certo para Bookworm/Debian 12+
+# Instala pysrt direto no Python do sistema
 RUN pip3 install pysrt --break-system-packages
 
 # Etapa 2: Instala FFmpeg mais recente via build oficial do BtbN (master)
