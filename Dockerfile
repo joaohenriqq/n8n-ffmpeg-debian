@@ -49,12 +49,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxt-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Adiciona plugins Dragonfly Reverb (incluindo Hall) manualmente – via .zip
-RUN wget -O /tmp/dragonfly.zip "https://github.com/michaelwillis/dragonfly-reverb/releases/latest/download/dragonfly-reverb-linux-x86_64.zip" && \
-    unzip /tmp/dragonfly.zip -d /tmp/dragonfly && \
-    mkdir -p /usr/local/lib/lv2 && \
-    find /tmp/dragonfly -type d -name "*.lv2" -exec cp -r {} /usr/local/lib/lv2/ \; && \
-    rm -rf /tmp/dragonfly /tmp/dragonfly.zip
+# Etapa X: Instala plugins Dragonfly Reverb (LV2) manualmente
+RUN wget -O /tmp/dragonfly-reverb-lv2.deb "http://ftp.us.debian.org/debian/pool/main/d/dragonfly-reverb/dragonfly-reverb-lv2_3.2.10-3_amd64.deb" && \
+    apt-get update && \
+    apt-get install -y /tmp/dragonfly-reverb-lv2.deb && \
+    rm -f /tmp/dragonfly-reverb-lv2.deb && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Atualiza o pip para evitar warnings
 RUN python3 -m pip install --upgrade pip --break-system-packages
