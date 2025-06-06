@@ -1,10 +1,11 @@
 FROM node:20-bookworm-slim
 
-# Etapa 1: Instala dependências do sistema (inclui python3-venv para evitar erros futuros)
+# Etapa 1: Instala dependências do sistema (inclui Freeverb/LADSPA)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bc \
     frei0r-plugins \
     ladspa-sdk \
+    ladspa-plugin-freeverb \
     rubberband-cli \
     tesseract-ocr \
     ghostscript \
