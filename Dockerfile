@@ -7,7 +7,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ladspa-sdk \
     lv2-dev \
     dragonfly-reverb-lv2 \
-    artyfx-lv2 \
     calf-plugins \
     lv2file \
     rubberband-cli \
