@@ -1,8 +1,44 @@
 FROM node:20-bookworm-slim
 
-# Instala dependências de sistema para build, runtime e MFA (_kalpy/Kaldi)
+# ============ SISTEMA & BUILD ESSENTIALS =============
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bc \
+    build-essential \
+    automake \
+    autoconf \
+    libtool \
+    subversion \
+    zlib1g-dev \
+    libssl-dev \
+    libncurses5-dev \
+    libncursesw5-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libgdbm-dev \
+    libdb5.3-dev \
+    libbz2-dev \
+    libexpat1-dev \
+    liblzma-dev \
+    tk-dev \
+    libffi-dev \
+    uuid-dev \
+    git \
+    curl \
+    wget \
+    zip \
+    unzip \
+    tar \
+    jq \
+    sudo \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# ============ LIBS PARA MFA, KALDI, AUDIO, VIDEO, ETC ===========
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-venv \
+    python3-dev \
+    pipx \
     frei0r-plugins \
     ladspa-sdk \
     lv2-dev \
@@ -12,22 +48,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rubberband-cli \
     tesseract-ocr \
     ghostscript \
-    curl \
-    wget \
-    zip \
-    unzip \
-    tar \
-    jq \
-    git \
-    python3 \
-    python3-pip \
-    python3-venv \
-    python3-dev \
-    pipx \
     mediainfo \
     libimage-exiftool-perl \
     sox \
-    build-essential \
     fontconfig \
     libfreetype6 \
     libass9 \
@@ -48,44 +71,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libltdl-dev \
     libx11-dev \
     libxt-dev \
-    automake \
-    autoconf \
-    libtool \
-    subversion \
-    zlib1g-dev \
-    libssl-dev \
-    libncurses5-dev \
-    libncursesw5-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    libgdbm-dev \
-    libdb5.3-dev \
-    libbz2-dev \
-    libexpat1-dev \
-    liblzma-dev \
-    tk-dev \
-    libffi-dev \
-    uuid-dev \
-    # DEPENDÊNCIAS MFA/Kaldi _kalpy_
+    # MFA/Kaldi _kalpy_ específicas:
     libatlas-base-dev \
     libsndfile1 \
     libopenblas-dev \
     liblapack-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Atualiza o pip global (Python do sistema) para evitar warnings
-RUN python3 -m pip install --upgrade pip --break-system-packages
+# ============ PYTHON GLOBAL: pip e pysrt ===========
+RUN python3 -m pip install --upgrade pip --break-system-packages && \
+    pip3 install pysrt --break-system-packages
 
-# Instala o Montreal Forced Aligner (MFA) de forma isolada com pipx (recomendado)
+# ============ MONTREAL FORCED ALIGNER (MFA) ===========
 RUN pipx install montreal-forced-aligner
 
-# Adiciona o pipx e binários no PATH global
-ENV PATH="/root/.local/bin:/root/.local/pipx/venvs/montreal-forced-aligner/bin:${PATH}"
+# Permissões e PATH globais para MFA funcionar em qualquer user/contexto
+RUN chmod -R a+rx /root/.local /usr/local/bin /opt/pipx
+ENV PATH="/root/.local/bin:/opt/pipx/bin:/opt/pipx/venvs/montreal-forced-aligner/bin:${PATH}"
+RUN ln -sf /root/.local/bin/mfa /usr/local/bin/mfa
 
-# Instala pysrt direto no Python do sistema
-RUN pip3 install pysrt --break-system-packages
+# Teste do MFA logo no build (fail fast)
+RUN /usr/local/bin/mfa --version
 
-# Instala FFmpeg mais recente via build oficial do BtbN (master)
+# ============ FFMPEG LATEST (BtbN build oficial) ===========
 RUN mkdir -p /opt/ffmpeg && \
     wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 3 -qO- \
       https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linux64-gpl-shared.tar.xz | \
@@ -95,7 +103,7 @@ RUN mkdir -p /opt/ffmpeg && \
 
 ENV LD_LIBRARY_PATH=/opt/ffmpeg/lib:$LD_LIBRARY_PATH
 
-# Compila e instala ImageMagick 7 com suporte a magick e módulos
+# ============ IMAGEMAGICK 7 ===========
 RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz && \
     tar xvzf ImageMagick.tar.gz && \
     cd ImageMagick-* && \
@@ -103,7 +111,7 @@ RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz && \
     make -j$(nproc) && make install && ldconfig && \
     cd .. && rm -rf ImageMagick*
 
-# Instala ferramentas Python com pipx (modo seguro com system-site-packages)
+# ============ PIPX FERRAMENTAS ÚTEIS ===========
 ENV PIPX_BIN_DIR=/usr/local/bin
 ENV PIPX_HOME=/opt/pipx
 RUN pipx install ffmpeg-normalize --system-site-packages && \
@@ -111,25 +119,19 @@ RUN pipx install ffmpeg-normalize --system-site-packages && \
     pipx inject auto-subtitle ffmpeg-python && \
     ln -sf /opt/pipx/venvs/auto-subtitle/bin/auto_subtitle /usr/local/bin/auto_subtitle
 
-# Clona e instala PupCaps
+# ============ PUPCABS ===========
 RUN git clone https://github.com/hosuaby/PupCaps.git /opt/pupcaps && \
     cd /opt/pupcaps && \
     npm install && \
     npm install -g .
 
-# Instala o n8n globalmente
+# ============ n8n E JSON5 ===========
 RUN npm install -g n8n
-
-# Instala o JSON5 globalmente
 RUN npm install -g json5
 
-# Define diretório de trabalho
+# ============ FINAL ===========
 WORKDIR /data
-
-# Define usuário e porta do n8n
 USER node
 EXPOSE 5678
 ENV N8N_PORT=5678
-
-# Inicia o n8n (Gentle ou MFA podem ser rodados à parte, via comando manual/n8n)
 CMD ["n8n"]
