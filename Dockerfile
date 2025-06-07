@@ -49,27 +49,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxt-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-    # Etapa X: Instala Gentle (alinhador de áudio-texto)
+# Etapa 2: Instala Gentle (alinhador de áudio-texto)
 RUN git clone https://github.com/strob/gentle.git /opt/gentle && \
     cd /opt/gentle && \
-    pip3 install -r requirements.txt && \
     python3 -m pip install --upgrade pip setuptools wheel && \
+    pip3 install -r requirements.txt && \
     python3 setup.py install
 
-# Etapa X: Instala plugins Dragonfly Reverb (LV2) manualmente
-RUN wget -O /tmp/dragonfly-reverb-lv2.deb "http://ftp.us.debian.org/debian/pool/main/d/dragonfly-reverb/dragonfly-reverb-lv2_3.2.10-3_amd64.deb" && \
-    apt-get update && \
-    apt-get install -y /tmp/dragonfly-reverb-lv2.deb && \
-    rm -f /tmp/dragonfly-reverb-lv2.deb && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Atualiza o pip para evitar warnings
+# Etapa 3: Atualiza o pip global para evitar warnings
 RUN python3 -m pip install --upgrade pip --break-system-packages
 
-# Instala pysrt direto no Python do sistema
+# Etapa 4: Instala pysrt direto no Python do sistema
 RUN pip3 install pysrt --break-system-packages
 
-# Etapa 2: Instala FFmpeg mais recente via build oficial do BtbN (master)
+# Etapa 5: Instala FFmpeg mais recente via build oficial do BtbN (master)
 RUN mkdir -p /opt/ffmpeg && \
     wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 3 -qO- \
       https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linux64-gpl-shared.tar.xz | \
@@ -79,7 +72,7 @@ RUN mkdir -p /opt/ffmpeg && \
 
 ENV LD_LIBRARY_PATH=/opt/ffmpeg/lib:$LD_LIBRARY_PATH
 
-# Etapa 3: Compila e instala ImageMagick 7 com suporte a magick e módulos
+# Etapa 6: Compila e instala ImageMagick 7 com suporte a magick e módulos
 RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz && \
     tar xvzf ImageMagick.tar.gz && \
     cd ImageMagick-* && \
@@ -87,7 +80,7 @@ RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz && \
     make -j$(nproc) && make install && ldconfig && \
     cd .. && rm -rf ImageMagick*
 
-# Etapa 4: Instala ferramentas Python com pipx (modo seguro com system-site-packages)
+# Etapa 7: Instala ferramentas Python com pipx (modo seguro com system-site-packages)
 ENV PIPX_BIN_DIR=/usr/local/bin
 ENV PIPX_HOME=/opt/pipx
 RUN pipx install ffmpeg-normalize --system-site-packages && \
@@ -95,25 +88,25 @@ RUN pipx install ffmpeg-normalize --system-site-packages && \
     pipx inject auto-subtitle ffmpeg-python && \
     ln -sf /opt/pipx/venvs/auto-subtitle/bin/auto_subtitle /usr/local/bin/auto_subtitle
 
-# Etapa 5: Clona e instala PupCaps
+# Etapa 8: Clona e instala PupCaps
 RUN git clone https://github.com/hosuaby/PupCaps.git /opt/pupcaps && \
     cd /opt/pupcaps && \
     npm install && \
     npm install -g .
 
-# Etapa 6: Instala o n8n globalmente
+# Etapa 9: Instala o n8n globalmente
 RUN npm install -g n8n
 
-# Instala o JSON5 globalmente
+# Etapa 10: Instala o JSON5 globalmente
 RUN npm install -g json5
 
-# Etapa 7: Define diretório de trabalho
+# Etapa 11: Define diretório de trabalho
 WORKDIR /data
 
-# Etapa 8: Define usuário e porta
+# Etapa 12: Define usuário e porta
 USER node
 EXPOSE 5678
 ENV N8N_PORT=5678
 
-# Etapa 9: Inicia o n8n
+# Etapa 13: Inicia o n8n
 CMD ["n8n"]
