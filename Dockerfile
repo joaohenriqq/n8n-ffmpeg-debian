@@ -49,11 +49,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxt-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Etapa 2: Instala Gentle (alinhador de áudio-texto)
 RUN git clone https://github.com/strob/gentle.git /opt/gentle && \
     cd /opt/gentle && \
     python3 -m pip install --upgrade pip setuptools wheel --break-system-packages && \
-    pip3 install --break-system-packages -r requirements.txt && \
     python3 setup.py install
 
 # Etapa 3: Atualiza o pip global para evitar warnings
