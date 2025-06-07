@@ -49,10 +49,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxt-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Baixa Gentle
 RUN git clone https://github.com/strob/gentle.git /opt/gentle && \
     cd /opt/gentle && \
     python3 -m pip install --upgrade pip setuptools wheel --break-system-packages && \
     python3 setup.py install
+
+# Baixa os recursos do Gentle (linguagem/modelos obrigatórios)
+RUN cd /opt/gentle && python3 -m gentle.download
+
+# Garante que o Gentle encontre os recursos
+ENV GENTLE_RESOURCES_ROOT=/opt/gentle/exp
 
 # Etapa 3: Atualiza o pip global para evitar warnings
 RUN python3 -m pip install --upgrade pip --break-system-packages
