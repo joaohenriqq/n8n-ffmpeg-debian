@@ -79,10 +79,9 @@ RUN cd /usr/src && \
 # Etapa 3: Atualiza pip/setuptools/wheel para Python 3.8
 RUN /usr/local/bin/python3.8 -m pip install --upgrade pip setuptools wheel
 
-# Etapa 4: Instala Gentle usando Python 3.8
 RUN git clone --recurse-submodules https://github.com/lowerquality/gentle.git /opt/gentle
 WORKDIR /opt/gentle
-RUN /usr/local/bin/python3.8 ./install.py
+RUN ./install.sh
 
 # Atalho para rodar o servidor Gentle no Python 3.8
 RUN echo '#!/bin/bash\nexec /usr/local/bin/python3.8 /opt/gentle/serve.py --port 8765 "$@"' > /usr/local/bin/gentle-server && chmod +x /usr/local/bin/gentle-server
