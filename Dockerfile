@@ -1,6 +1,6 @@
 FROM node:20-bookworm-slim
 
-# Etapa 1: Instala dependências do sistema (inclui Python 3.8 para o Gentle)
+# Etapa 1: Instala dependências do sistema (SEM python3.8 via apt, só o básico para build e runtime)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bc \
     frei0r-plugins \
@@ -19,9 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tar \
     jq \
     git \
-    python3.8 \
-    python3.8-venv \
-    python3.8-dev \
+    python3 \
     python3-pip \
     python3-venv \
     pipx \
@@ -54,28 +52,51 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libtool \
     subversion \
     zlib1g-dev \
+    libssl-dev \
+    libncurses5-dev \
+    libncursesw5-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libgdbm-dev \
+    libdb5.3-dev \
+    libbz2-dev \
+    libexpat1-dev \
+    liblzma-dev \
+    tk-dev \
+    libffi-dev \
+    uuid-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Etapa X: Atualiza pip/setuptools para Python 3.8 e instala Gentle em ambiente próprio
-RUN python3.8 -m pip install --upgrade pip setuptools
+# Etapa 2: Baixa, compila e instala Python 3.8.19 manualmente
+RUN cd /usr/src && \
+    wget https://www.python.org/ftp/python/3.8.19/Python-3.8.19.tgz && \
+    tar xzf Python-3.8.19.tgz && \
+    cd Python-3.8.19 && \
+    ./configure --enable-optimizations --with-ensurepip=install && \
+    make -j$(nproc) && make altinstall && \
+    cd / && rm -rf /usr/src/Python-3.8.19*
+
+# Etapa 3: Atualiza pip/setuptools/wheel para Python 3.8
+RUN /usr/local/bin/python3.8 -m pip install --upgrade pip setuptools wheel
+
+# Etapa 4: Instala Gentle usando Python 3.8
 RUN git clone --recurse-submodules https://github.com/lowerquality/gentle.git /opt/gentle
 WORKDIR /opt/gentle
-RUN python3.8 ./install.py  # usa o Python 3.8 para instalar dependências do Gentle
-RUN ln -sf /usr/bin/python3.8 /usr/local/bin/python3.8
+RUN /usr/local/bin/python3.8 ./install.py
 
-# (Opcional) Atalho para rodar o servidor Gentle no Python 3.8
-RUN echo '#!/bin/bash\nexec python3.8 /opt/gentle/serve.py --port 8765 "$@"' > /usr/local/bin/gentle-server && chmod +x /usr/local/bin/gentle-server
+# Atalho para rodar o servidor Gentle no Python 3.8
+RUN echo '#!/bin/bash\nexec /usr/local/bin/python3.8 /opt/gentle/serve.py --port 8765 "$@"' > /usr/local/bin/gentle-server && chmod +x /usr/local/bin/gentle-server
 
-# Etapa Y: Define a variável de ambiente para o diretório de recursos do Gentle
+# Variável de ambiente para o Gentle
 ENV GENTLE_RESOURCES_ROOT=/opt/gentle/exp
 
-# Etapa 3: Atualiza o pip global para evitar warnings
+# Atualiza o pip global (Python do sistema) para evitar warnings
 RUN python3 -m pip install --upgrade pip --break-system-packages
 
-# Etapa 4: Instala pysrt direto no Python do sistema
+# Instala pysrt direto no Python do sistema
 RUN pip3 install pysrt --break-system-packages
 
-# Etapa 5: Instala FFmpeg mais recente via build oficial do BtbN (master)
+# Instala FFmpeg mais recente via build oficial do BtbN (master)
 RUN mkdir -p /opt/ffmpeg && \
     wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 3 -qO- \
       https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linux64-gpl-shared.tar.xz | \
@@ -85,7 +106,7 @@ RUN mkdir -p /opt/ffmpeg && \
 
 ENV LD_LIBRARY_PATH=/opt/ffmpeg/lib:$LD_LIBRARY_PATH
 
-# Etapa 6: Compila e instala ImageMagick 7 com suporte a magick e módulos
+# Compila e instala ImageMagick 7 com suporte a magick e módulos
 RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz && \
     tar xvzf ImageMagick.tar.gz && \
     cd ImageMagick-* && \
@@ -93,7 +114,7 @@ RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz && \
     make -j$(nproc) && make install && ldconfig && \
     cd .. && rm -rf ImageMagick*
 
-# Etapa 7: Instala ferramentas Python com pipx (modo seguro com system-site-packages)
+# Instala ferramentas Python com pipx (modo seguro com system-site-packages)
 ENV PIPX_BIN_DIR=/usr/local/bin
 ENV PIPX_HOME=/opt/pipx
 RUN pipx install ffmpeg-normalize --system-site-packages && \
@@ -101,25 +122,25 @@ RUN pipx install ffmpeg-normalize --system-site-packages && \
     pipx inject auto-subtitle ffmpeg-python && \
     ln -sf /opt/pipx/venvs/auto-subtitle/bin/auto_subtitle /usr/local/bin/auto_subtitle
 
-# Etapa 8: Clona e instala PupCaps
+# Clona e instala PupCaps
 RUN git clone https://github.com/hosuaby/PupCaps.git /opt/pupcaps && \
     cd /opt/pupcaps && \
     npm install && \
     npm install -g .
 
-# Etapa 9: Instala o n8n globalmente
+# Instala o n8n globalmente
 RUN npm install -g n8n
 
-# Etapa 10: Instala o JSON5 globalmente
+# Instala o JSON5 globalmente
 RUN npm install -g json5
 
-# Etapa 11: Define diretório de trabalho
+# Define diretório de trabalho
 WORKDIR /data
 
-# Etapa 12: Define usuário e porta do n8n
+# Define usuário e porta do n8n
 USER node
 EXPOSE 5678
 ENV N8N_PORT=5678
 
-# Etapa 13: Inicia o n8n (gentle pode ser rodado à parte, ver abaixo)
+# Inicia o n8n (Gentle pode ser rodado à parte: gentle-server)
 CMD ["n8n"]
