@@ -49,6 +49,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxt-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+    # Etapa X: Instala Gentle (alinhador de áudio-texto)
+RUN git clone https://github.com/strob/gentle.git /opt/gentle && \
+    cd /opt/gentle && \
+    pip3 install -r requirements.txt && \
+    python3 -m pip install --upgrade pip setuptools wheel && \
+    python3 setup.py install
+
 # Etapa X: Instala plugins Dragonfly Reverb (LV2) manualmente
 RUN wget -O /tmp/dragonfly-reverb-lv2.deb "http://ftp.us.debian.org/debian/pool/main/d/dragonfly-reverb/dragonfly-reverb-lv2_3.2.10-3_amd64.deb" && \
     apt-get update && \
@@ -83,8 +90,7 @@ RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz && \
 # Etapa 4: Instala ferramentas Python com pipx (modo seguro com system-site-packages)
 ENV PIPX_BIN_DIR=/usr/local/bin
 ENV PIPX_HOME=/opt/pipx
-RUN pipx install openai-whisper --system-site-packages && \
-    pipx install ffmpeg-normalize --system-site-packages && \
+RUN pipx install ffmpeg-normalize --system-site-packages && \
     pipx install 'git+https://github.com/m1guelpf/auto-subtitle.git' --system-site-packages && \
     pipx inject auto-subtitle ffmpeg-python && \
     ln -sf /opt/pipx/venvs/auto-subtitle/bin/auto_subtitle /usr/local/bin/auto_subtitle
