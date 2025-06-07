@@ -1,6 +1,6 @@
 FROM node:20-bookworm-slim
 
-# Instala dependências do sistema (build, runtime, MFA/Kaldi, ferramentas de mídia e OCR)
+# Instala dependências do sistema (build, runtime, mídia, OCR)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     automake \
     autoconf \
@@ -81,15 +81,6 @@ RUN python3 -m pip install --upgrade pip --break-system-packages
 # Cria o diretório para o pipx antes de qualquer uso
 RUN mkdir -p /opt/pipx
 
-# Instala Montreal Forced Aligner (MFA) via pipx (isolado, robusto)
-RUN pipx install montreal-forced-aligner
-
-# Permissões e PATH globais para MFA funcionar em qualquer usuário/contexto
-RUN chmod -R a+rx /root/.local /usr/local/bin /opt/pipx
-# Link só serve se /root for acessível (nem sempre é). Melhor copiar:
-RUN cp /root/.local/bin/mfa /usr/local/bin/mfa && chmod a+rx /usr/local/bin/mfa
-ENV PATH="/usr/local/bin:${PATH}"
-
 # Instala pysrt direto no Python do sistema
 RUN pip3 install pysrt --break-system-packages
 
@@ -139,5 +130,5 @@ USER node
 EXPOSE 5678
 ENV N8N_PORT=5678
 
-# Inicia o n8n (Gentle ou MFA podem ser rodados à parte, via comando manual/n8n)
+# Inicia o n8n
 CMD ["n8n"]
