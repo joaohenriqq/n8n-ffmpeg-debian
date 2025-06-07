@@ -56,7 +56,7 @@ RUN git clone https://github.com/strob/gentle.git /opt/gentle && \
     python3 setup.py install
 
 # Baixa os recursos do Gentle (linguagem/modelos obrigatórios)
-RUN cd /opt/gentle && python3 -m gentle.download
+RUN cd /opt/gentle && bash ext/install_models.sh
 
 # Garante que o Gentle encontre os recursos
 ENV GENTLE_RESOURCES_ROOT=/opt/gentle/exp
