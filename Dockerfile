@@ -1,6 +1,6 @@
 FROM node:20-bookworm-slim
 
-# Etapa 1: Instala dependências do sistema (inclui LV2, Dragonfly, Calf e lv2file)
+# Etapa 1: Instala dependências do sistema (inclui Python 3.8 para o Gentle)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bc \
     frei0r-plugins \
@@ -19,7 +19,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tar \
     jq \
     git \
-    python3 \
+    python3.8 \
+    python3.8-venv \
+    python3.8-dev \
     python3-pip \
     python3-venv \
     pipx \
@@ -47,12 +49,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libltdl-dev \
     libx11-dev \
     libxt-dev \
+    automake \
+    autoconf \
+    libtool \
+    subversion \
+    zlib1g-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Etapa X: Clona o repositório do Gentle com submódulos e instala os modelos
-RUN git clone --recurse-submodules https://github.com/lowerquality/gentle.git /opt/gentle && \
-    cd /opt/gentle && \
-    ./install.sh
+# Etapa X: Atualiza pip/setuptools para Python 3.8 e instala Gentle em ambiente próprio
+RUN python3.8 -m pip install --upgrade pip setuptools
+RUN git clone --recurse-submodules https://github.com/lowerquality/gentle.git /opt/gentle
+WORKDIR /opt/gentle
+RUN python3.8 ./install.py  # usa o Python 3.8 para instalar dependências do Gentle
+RUN ln -sf /usr/bin/python3.8 /usr/local/bin/python3.8
+
+# (Opcional) Atalho para rodar o servidor Gentle no Python 3.8
+RUN echo '#!/bin/bash\nexec python3.8 /opt/gentle/serve.py --port 8765 "$@"' > /usr/local/bin/gentle-server && chmod +x /usr/local/bin/gentle-server
 
 # Etapa Y: Define a variável de ambiente para o diretório de recursos do Gentle
 ENV GENTLE_RESOURCES_ROOT=/opt/gentle/exp
@@ -104,10 +116,10 @@ RUN npm install -g json5
 # Etapa 11: Define diretório de trabalho
 WORKDIR /data
 
-# Etapa 12: Define usuário e porta
+# Etapa 12: Define usuário e porta do n8n
 USER node
 EXPOSE 5678
 ENV N8N_PORT=5678
 
-# Etapa 13: Inicia o n8n
+# Etapa 13: Inicia o n8n (gentle pode ser rodado à parte, ver abaixo)
 CMD ["n8n"]
