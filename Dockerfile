@@ -49,16 +49,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxt-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Baixa Gentle
-RUN git clone https://github.com/strob/gentle.git /opt/gentle && \
+# Etapa X: Clona o repositório do Gentle com submódulos e instala os modelos
+RUN git clone --recurse-submodules https://github.com/lowerquality/gentle.git /opt/gentle && \
     cd /opt/gentle && \
-    python3 -m pip install --upgrade pip setuptools wheel --break-system-packages && \
-    python3 setup.py install
+    ./install.sh
 
-# Baixa os recursos do Gentle (linguagem/modelos obrigatórios)
-RUN cd /opt/gentle && bash ext/install_models.sh
-
-# Garante que o Gentle encontre os recursos
+# Etapa Y: Define a variável de ambiente para o diretório de recursos do Gentle
 ENV GENTLE_RESOURCES_ROOT=/opt/gentle/exp
 
 # Etapa 3: Atualiza o pip global para evitar warnings
