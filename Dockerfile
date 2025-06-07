@@ -86,8 +86,9 @@ RUN pipx install montreal-forced-aligner
 
 # Permissões e PATH globais para MFA funcionar em qualquer usuário/contexto
 RUN chmod -R a+rx /root/.local /usr/local/bin /opt/pipx
-ENV PATH="/root/.local/bin:/opt/pipx/bin:/opt/pipx/venvs/montreal-forced-aligner/bin:${PATH}"
-RUN ln -sf /root/.local/bin/mfa /usr/local/bin/mfa
+# Link só serve se /root for acessível (nem sempre é). Melhor copiar:
+RUN cp /root/.local/bin/mfa /usr/local/bin/mfa && chmod a+rx /usr/local/bin/mfa
+ENV PATH="/usr/local/bin:${PATH}"
 
 # Instala pysrt direto no Python do sistema
 RUN pip3 install pysrt --break-system-packages
