@@ -67,30 +67,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     uuid-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Etapa 2: Baixa, compila e instala Python 3.8.19 manualmente
-RUN cd /usr/src && \
-    wget https://www.python.org/ftp/python/3.8.19/Python-3.8.19.tgz && \
-    tar xzf Python-3.8.19.tgz && \
-    cd Python-3.8.19 && \
-    ./configure --enable-optimizations --with-ensurepip=install && \
-    make -j$(nproc) && make altinstall && \
-    cd / && rm -rf /usr/src/Python-3.8.19*
-
-# Etapa 3: Atualiza pip/setuptools/wheel para Python 3.8
-RUN /usr/local/bin/python3.8 -m pip install --upgrade pip setuptools wheel
-
-RUN git clone --recurse-submodules https://github.com/lowerquality/gentle.git /opt/gentle
-WORKDIR /opt/gentle
-RUN ./install.sh
-
-# Atalho para rodar o servidor Gentle no Python 3.8
-RUN echo '#!/bin/bash\nexec /usr/local/bin/python3.8 /opt/gentle/serve.py --port 8765 "$@"' > /usr/local/bin/gentle-server && chmod +x /usr/local/bin/gentle-server
-
-# Variável de ambiente para o Gentle
-ENV GENTLE_RESOURCES_ROOT=/opt/gentle/exp
-
 # Atualiza o pip global (Python do sistema) para evitar warnings
 RUN python3 -m pip install --upgrade pip --break-system-packages
+
+# Instala o Montreal Forced Aligner (MFA)
+RUN pip install montreal-forced-aligner
 
 # Instala pysrt direto no Python do sistema
 RUN pip3 install pysrt --break-system-packages
@@ -141,5 +122,5 @@ USER node
 EXPOSE 5678
 ENV N8N_PORT=5678
 
-# Inicia o n8n (Gentle pode ser rodado à parte: gentle-server)
+# Inicia o n8n (Gentle ou MFA podem ser rodados à parte, via comando manual/n8n)
 CMD ["n8n"]
