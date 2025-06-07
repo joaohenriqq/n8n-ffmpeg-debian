@@ -71,7 +71,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python3 -m pip install --upgrade pip --break-system-packages
 
 # Instala o Montreal Forced Aligner (MFA)
-RUN pip install montreal-forced-aligner
+RUN pip install --break-system-packages montreal-forced-aligner
 
 # Instala pysrt direto no Python do sistema
 RUN pip3 install pysrt --break-system-packages
