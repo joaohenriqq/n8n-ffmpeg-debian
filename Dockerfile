@@ -1,6 +1,6 @@
 FROM node:20-bookworm-slim
 
-# Etapa 1: Instala dependências do sistema (SEM python3.8 via apt, só o básico para build e runtime)
+# Instala dependências de sistema para build, runtime e MFA (_kalpy/Kaldi)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bc \
     frei0r-plugins \
@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
     python3-venv \
+    python3-dev \
     pipx \
     mediainfo \
     libimage-exiftool-perl \
@@ -65,13 +66,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tk-dev \
     libffi-dev \
     uuid-dev \
+    # DEPENDÊNCIAS MFA/Kaldi _kalpy_
+    libatlas-base-dev \
+    libsndfile1 \
+    libopenblas-dev \
+    liblapack-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Atualiza o pip global (Python do sistema) para evitar warnings
 RUN python3 -m pip install --upgrade pip --break-system-packages
 
-# Instala o Montreal Forced Aligner (MFA)
-RUN pip install --break-system-packages montreal-forced-aligner
+# Instala o Montreal Forced Aligner (MFA) de forma isolada com pipx (recomendado)
+RUN pipx install montreal-forced-aligner
+
+# Adiciona o pipx e binários no PATH global
+ENV PATH="/root/.local/bin:/root/.local/pipx/venvs/montreal-forced-aligner/bin:${PATH}"
 
 # Instala pysrt direto no Python do sistema
 RUN pip3 install pysrt --break-system-packages
