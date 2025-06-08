@@ -1,53 +1,47 @@
 # ────────────────────────────────────────────────────────────────────────────────
-# n8n + utilitários multimídia + tg2srt
+# n8n (Node 20) + utilitários multimídia  +  tg2srt em /usr/local/bin
 # ────────────────────────────────────────────────────────────────────────────────
 FROM node:20-bookworm-slim
 
 # ────────────────────────────────────────────────────────────────────────────────
-# 1. Sistema & dependências nativas
+# 1.  Debian packages
 # ────────────────────────────────────────────────────────────────────────────────
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        automake autoconf bc build-essential curl git jq sox \
-        ghostscript tesseract-ocr mediainfo fontconfig libsndfile1 \
+        build-essential curl git jq sox ghostscript tesseract-ocr mediainfo \
         python3 python3-dev python3-pip python3-venv \
-        libssl-dev libffi-dev libxml2-dev libjpeg-dev libpng-dev \
+        libffi-dev libssl-dev libxml2-dev libjpeg-dev libpng-dev \
         libtiff-dev libopenjp2-7-dev libwebp-dev zlib1g-dev \
         unzip wget zip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ────────────────────────────────────────────────────────────────────────────────
-# 2. Python: atualiza pip + instala libs usadas pelos scripts
+# 2.  Python libs (textgrid + pysrt)
 # ────────────────────────────────────────────────────────────────────────────────
 RUN python3 -m pip install --upgrade pip --break-system-packages && \
-    pip3 install --break-system-packages \
-        pysrt \
-        textgrid
+    pip3    install --break-system-packages pysrt textgrid
 
 # ────────────────────────────────────────────────────────────────────────────────
-# 3. Instala FFmpeg (build BtbN)  +  ImageMagick (opcional)
+# 3.  FFmpeg (build BtbN)  – se não precisar, comente este bloco
 # ────────────────────────────────────────────────────────────────────────────────
 RUN mkdir -p /opt/ffmpeg && \
-    wget -qO- \
-      https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linux64-gpl-shared.tar.xz \
+    wget -qO- https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linux64-gpl-shared.tar.xz \
     | tar -xJ --strip-components=1 -C /opt/ffmpeg && \
     ln -sf /opt/ffmpeg/bin/ffmpeg  /usr/local/bin/ffmpeg && \
     ln -sf /opt/ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
-
-ENV LD_LIBRARY_PATH=/opt/ffmpeg/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/opt/ffmpeg/lib:${LD_LIBRARY_PATH}
 
 # ────────────────────────────────────────────────────────────────────────────────
-# 4. Instala n8n  +  utils (auto_subtitle, ﻿ffmpeg-normalize, PupCaps)  via npm/pipx
+# 4.  n8n + extras via npm
 # ────────────────────────────────────────────────────────────────────────────────
 RUN npm install -g n8n json5
 
-# (Exemplo de instalação de outros utilitários — pode comentar se não usar)
-RUN pip install --break-system-packages ffmpeg-normalize
-
 # ────────────────────────────────────────────────────────────────────────────────
-# 5. Adiciona script *tg2srt* (TextGrid → SRT)
+# 5.  Script tg2srt  (sem espaços antes de cat  <<'PY')
 # ────────────────────────────────────────────────────────────────────────────────
-RUN cat > /usr/local/bin/tg2srt << 'PY' && chmod +x /usr/local/bin/tg2srt
+RUN set -e && \
+cat > /usr/local/bin/tg2srt <<'PY' && \
+chmod +x /usr/local/bin/tg2srt
 #!/usr/bin/env python3
 """
 tg2srt — converte TextGrid (tier 'word') em legenda SRT.
@@ -83,13 +77,13 @@ print(f"SRT salvo em {outp}  •  {len(subs)} linhas")
 PY
 
 # ────────────────────────────────────────────────────────────────────────────────
-# 6. Diretório de trabalho  +  usuário n8n
+# 6.  Usuário não-root + diretório de trabalho
 # ────────────────────────────────────────────────────────────────────────────────
 WORKDIR /data
 USER node
 
 # ────────────────────────────────────────────────────────────────────────────────
-# 7. Porta / entrypoint
+# 7.  Porta / CMD
 # ────────────────────────────────────────────────────────────────────────────────
 EXPOSE 5678
 ENV N8N_PORT=5678
