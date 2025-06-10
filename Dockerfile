@@ -16,10 +16,10 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ────────────────────────────────────────────────────────────────────────────────
-# 2.  Python libs (textgrid + pysrt)
+# 2.  Python libs (textgrid + pysrt + ffsubsync)
 # ────────────────────────────────────────────────────────────────────────────────
 RUN python3 -m pip install --upgrade pip --break-system-packages && \
-    pip3    install --break-system-packages pysrt textgrid
+    pip3 install --break-system-packages pysrt textgrid ffsubsync
 
 # ────────────────────────────────────────────────────────────────────────────────
 # 3.  FFmpeg (build BtbN)  – se não precisar, comente este bloco
