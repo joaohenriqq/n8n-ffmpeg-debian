@@ -24,14 +24,17 @@ RUN python3 -m pip install --upgrade pip --break-system-packages && \
 # ────────────────────────────────────────────────────────────────────────────────
 # 3.  FFmpeg (build BtbN)  – se não precisar, comente este bloco
 # ────────────────────────────────────────────────────────────────────────────────
+# Instala utilitário `file` para verificar o archive
+RUN apt-get update && apt-get install -y --no-install-recommends file && rm -rf /var/lib/apt/lists/*
+
 RUN mkdir -p /opt/ffmpeg && \
-    wget -O /tmp/ffmpeg.tar.xz https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-06-13-13-43/ffmpeg-N-119884-gfb65ecbc9b-linux64-gpl-shared.tar.xz && \
-    file /tmp/ffmpeg.tar.xz && \
+    wget -O /tmp/ffmpeg.tar.xz \
+      https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl-shared.tar.xz && \
     tar -xJf /tmp/ffmpeg.tar.xz --strip-components=1 -C /opt/ffmpeg && \
     ln -sf /opt/ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg && \
     ln -sf /opt/ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
 
-ENV LD_LIBRARY_PATH=/opt/ffmpeg/lib:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=/opt/ffmpeg/lib:${LD_LIBRARY_PATH:-}
 
 # ────────────────────────────────────────────────────────────────────────────────
 # 4.  n8n + extras via npm
