@@ -13,6 +13,8 @@ RUN apt-get update && \
         libffi-dev libssl-dev libxml2-dev libjpeg-dev libpng-dev \
         libtiff-dev libopenjp2-7-dev libwebp-dev zlib1g-dev \
         unzip wget zip && \
+        imagemagick \               
+        graphicsmagick \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ────────────────────────────────────────────────────────────────────────────────
