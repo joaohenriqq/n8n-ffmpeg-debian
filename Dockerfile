@@ -1,13 +1,15 @@
 # ────────────────────────────────────────────────────────────────────────────────
-# n8n (Node 20) + FFmpeg + ImageMagick/GraphicsMagick + fontes multilíngues
-# + fonts display de alto impacto + utilitários Python + tg2srt
+# n8n (Node 20) + FFmpeg + ImageMagick/GraphicsMagick + kit de fontes multilíngues
+# e display de alto impacto + utilitários Python + script tg2srt
 # ────────────────────────────────────────────────────────────────────────────────
 FROM node:20-bookworm-slim
 
-# Use bash em todos os RUN (necessário p/ ${var,,})
+# Use bash em todos os RUN (necessário para ${var,,})
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# ─── 1. Pacotes base ───────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────────
+# 1. Pacotes base do sistema
+# ────────────────────────────────────────────────────────────────────────────────
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential curl git jq sox ghostscript tesseract-ocr mediainfo \
@@ -18,7 +20,9 @@ RUN apt-get update && \
         imagemagick graphicsmagick && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# ─── 1-bis.  Fontes multilíngues + display (alto CTR) ──────────────────────────
+# ────────────────────────────────────────────────────────────────────────────────
+# 1-bis. Fontes multilíngues + display (alto CTR) para thumbnails
+# ────────────────────────────────────────────────────────────────────────────────
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         fontconfig \
@@ -28,17 +32,21 @@ RUN apt-get update && \
     mkdir -p /usr/local/share/fonts/truetype/gf && \
     cd /usr/local/share/fonts/truetype/gf && \
     for f in Anton BebasNeue Bangers LuckiestGuy LilitaOne Oswald LeagueSpartan Rowdies Teko; do \
-        curl -fsSL "https://raw.githubusercontent.com/google/fonts/main/ofl/${f,,}/${f}-Regular.ttf" \
-          -o "${f}-Regular.ttf"; \
+      curl -fsSL "https://raw.githubusercontent.com/google/fonts/master/ofl/${f,,}/${f}-Regular.ttf" \
+        -o "${f}-Regular.ttf"; \
     done && \
     fc-cache -f -v && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# ─── 2. Bibliotecas Python ─────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────────
+# 2. Bibliotecas Python (TextGrid, legendas, sync)
+# ────────────────────────────────────────────────────────────────────────────────
 RUN python3 -m pip install --upgrade pip --break-system-packages && \
     pip3 install --break-system-packages pysrt textgrid ffsubsync pysubs2
 
-# ─── 3. FFmpeg (build BtbN) ────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────────
+# 3. FFmpeg (build BtbN)
+# ────────────────────────────────────────────────────────────────────────────────
 RUN apt-get update && \
     apt-get install -y --no-install-recommends file && \
     rm -rf /var/lib/apt/lists/* && \
@@ -50,10 +58,14 @@ RUN apt-get update && \
     ln -sf /opt/ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
 ENV LD_LIBRARY_PATH=/opt/ffmpeg/lib:${LD_LIBRARY_PATH:-}
 
-# ─── 4. n8n + extras via npm ───────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────────
+# 4. n8n + extras via npm
+# ────────────────────────────────────────────────────────────────────────────────
 RUN npm install -g n8n json5
 
-# ─── 5. Script tg2srt ──────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────────
+# 5. Script tg2srt em /usr/local/bin
+# ────────────────────────────────────────────────────────────────────────────────
 RUN cat > /usr/local/bin/tg2srt <<'PY' && \
     chmod +x /usr/local/bin/tg2srt
 #!/usr/bin/env python3
@@ -80,11 +92,15 @@ subs.save(outp, encoding="utf-8")
 print(f"SRT salvo em {outp}  •  {len(subs)} linhas")
 PY
 
-# ─── 6. Usuário e diretório ────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────────
+# 6. Usuário não-root + diretório padrão
+# ────────────────────────────────────────────────────────────────────────────────
 WORKDIR /data
 USER node
 
-# ─── 7. Exposição de porta / CMD ───────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────────
+# 7. Porta e comando padrão
+# ────────────────────────────────────────────────────────────────────────────────
 EXPOSE 5678
 ENV N8N_PORT=5678
 CMD ["n8n"]
