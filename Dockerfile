@@ -1,12 +1,11 @@
 # ────────────────────────────────────────────────────────────────────────────────
-# n8n (Node 20) + utilitários multimídia  +  tg2srt em /usr/local/bin
+# n8n (Node 20) + utilitários multimídia + fontes de alto impacto p/ thumbnails
 # ────────────────────────────────────────────────────────────────────────────────
 FROM node:20-bookworm-slim
 
 # ────────────────────────────────────────────────────────────────────────────────
-# 1.  Debian packages
+# 1.  Debian packages essenciais (Imagemagick + GM já inclusos)
 # ────────────────────────────────────────────────────────────────────────────────
-# ─── 1. Debian packages ────────────────────────────────────────────────────────
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential curl git jq sox ghostscript tesseract-ocr mediainfo \
@@ -14,8 +13,33 @@ RUN apt-get update && \
         libffi-dev libssl-dev libxml2-dev libjpeg-dev libpng-dev \
         libtiff-dev libopenjp2-7-dev libwebp-dev zlib1g-dev \
         unzip wget zip \
-        imagemagick graphicsmagick \            
+        imagemagick graphicsmagick \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# ────────────────────────────────────────────────────────────────────────────────
+# 1-bis.  Fontes multilíngues + display para thumbnails de alto CTR
+#        (latim completo, cedilha, acentos, CJK & headline fonts)
+# ────────────────────────────────────────────────────────────────────────────────
+RUN set -eux; \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        fontconfig \
+        # Cobertura ampla de idiomas
+        fonts-noto-core fonts-noto-cjk \
+        fonts-dejavu-core fonts-dejavu-extra \
+        fonts-ubuntu fonts-roboto fonts-liberation2 fonts-freefont-ttf \
+        # Fontes display já empacotadas no Debian
+        fonts-bebas-neue fonts-bangers fonts-luckiest-guy \
+        fonts-lilitaone fonts-oswald \
+    && mkdir -p /usr/local/share/fonts/truetype/gf && cd /usr/local/share/fonts/truetype/gf && \
+    # Baixa famílias display não empacotadas (Google Fonts raw)
+    for f in Anton LeagueSpartan Rowdies Teko ; do \
+        curl -fsSL "https://raw.githubusercontent.com/google/fonts/main/ofl/${f,,}/${f}-Regular.ttf" \
+        -o "${f}-Regular.ttf"; \
+    done && \
+    # Recarrega cache para que ImageMagick/GM enxergue tudo imediatamente
+    fc-cache -f -v && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ────────────────────────────────────────────────────────────────────────────────
 # 2.  Python libs (textgrid + pysrt + ffsubsync)
@@ -26,16 +50,13 @@ RUN python3 -m pip install --upgrade pip --break-system-packages && \
 # ────────────────────────────────────────────────────────────────────────────────
 # 3.  FFmpeg (build BtbN)  – se não precisar, comente este bloco
 # ────────────────────────────────────────────────────────────────────────────────
-# Instala utilitário `file` para verificar o archive
 RUN apt-get update && apt-get install -y --no-install-recommends file && rm -rf /var/lib/apt/lists/*
-
 RUN mkdir -p /opt/ffmpeg && \
     wget -O /tmp/ffmpeg.tar.xz \
       https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl-shared.tar.xz && \
     tar -xJf /tmp/ffmpeg.tar.xz --strip-components=1 -C /opt/ffmpeg && \
     ln -sf /opt/ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg && \
     ln -sf /opt/ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
-
 ENV LD_LIBRARY_PATH=/opt/ffmpeg/lib:${LD_LIBRARY_PATH:-}
 
 # ────────────────────────────────────────────────────────────────────────────────
