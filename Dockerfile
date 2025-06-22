@@ -12,12 +12,12 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # ────────────────────────────────────────────────────────────────────────────────
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        build-essential curl git jq sox ghostscript tesseract-ocr mediainfo \
-        python3 python3-dev python3-pip python3-venv \
-        libffi-dev libssl-dev libxml2-dev libjpeg-dev libpng-dev \
-        libtiff-dev libopenjp2-7-dev libwebp-dev zlib1g-dev \
-        unzip wget zip \
-        imagemagick graphicsmagick && \
+      build-essential curl git jq sox ghostscript tesseract-ocr mediainfo \
+      python3 python3-dev python3-pip python3-venv \
+      libffi-dev libssl-dev libxml2-dev libjpeg-dev libpng-dev \
+      libtiff-dev libopenjp2-7-dev libwebp-dev zlib1g-dev \
+      unzip wget zip \
+      imagemagick graphicsmagick && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ────────────────────────────────────────────────────────────────────────────────
@@ -25,10 +25,10 @@ RUN apt-get update && \
 # ────────────────────────────────────────────────────────────────────────────────
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        fontconfig \
-        fonts-noto-core fonts-noto-cjk \
-        fonts-dejavu-core fonts-dejavu-extra \
-        fonts-roboto fonts-liberation2 fonts-freefont-ttf && \
+      fontconfig \
+      fonts-noto-core fonts-noto-cjk \
+      fonts-dejavu-core fonts-dejavu-extra \
+      fonts-roboto fonts-liberation2 fonts-freefont-ttf && \
     mkdir -p /usr/local/share/fonts/truetype/gf && \
     cd /usr/local/share/fonts/truetype/gf && \
     for f in Anton BebasNeue Bangers LuckiestGuy LilitaOne Oswald LeagueSpartan Rowdies Teko; do \
