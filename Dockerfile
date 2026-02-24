@@ -21,7 +21,7 @@ RUN apt-get update && \
 # 2.  Python libs (textgrid + pysrt + ffsubsync)
 # ────────────────────────────────────────────────────────────────────────────────
 RUN python3 -m pip install --upgrade pip --break-system-packages && \
-    pip3 install --break-system-packages pysrt textgrid ffsubsync pysubs2 meta-ads-collector
+    pip3 install --break-system-packages pysrt textgrid ffsubsync pysubs2 meta-ads-collector[stealth]
 
 # ────────────────────────────────────────────────────────────────────────────────
 # 3.  FFmpeg (build BtbN)  – se não precisar, comente este bloco
