@@ -41,7 +41,7 @@ ENV LD_LIBRARY_PATH=/opt/ffmpeg/lib:${LD_LIBRARY_PATH:-}
 # ────────────────────────────────────────────────────────────────────────────────
 # 4.  n8n + extras via npm
 # ────────────────────────────────────────────────────────────────────────────────
-RUN npm install -g n8n json5
+RUN npm install -g n8n@latest json5
 
 # ────────────────────────────────────────────────────────────────────────────────
 # 5.  Script tg2srt  (sem espaços antes de cat  <<'PY')
